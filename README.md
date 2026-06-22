@@ -81,3 +81,126 @@ Milestone 2 successfully validated autonomous coordinate-based navigation for th
 The robot demonstrated the ability to determine its position using odometry, calculate the required heading, align itself with a target location, navigate autonomously, and stop once the goal was reached.
 
 This milestone establishes the foundation required for future development stages involving GPS integration, path planning, and obstacle avoidance.
+
+## Obstacle Avoidance (Stereo Depth-Based Perception)
+
+### Objective
+
+The objective of this module was to implement a reactive obstacle avoidance system using stereo depth perception. Unlike a simple threshold-based controller, this approach interprets depth information from a camera sensor to estimate spatial structure in front of the robot and determine safe movement directions.
+
+### Stereo Camera Model and Depth Interpretation
+
+The system is based on a stereo/depth camera model, where each pixel in the image represents a distance value (depth in meters) instead of RGB color information.
+
+This can be represented conceptually using a camera projection model:
+
+- The stereo camera generates a **depth matrix (D)**:
+  
+  D(x, y) → distance from the camera to the nearest object at pixel (x, y)
+
+This matrix is the result of stereo disparity estimation or RGB-D sensor fusion, where closer objects have smaller depth values and distant objects have larger values.
+
+### Region-Based Spatial Extraction
+
+To simplify navigation decision-making, the depth matrix is divided into three key spatial regions:
+
+- **Left region** → detects obstacles on the left side of the robot’s field of view
+- **Center region** → detects obstacles directly in front
+- **Right region** → detects obstacles on the right side
+
+Each region is extracted from a specific portion of the depth matrix:
+
+- Left: left third of the image
+- Center: middle section
+- Right: right third
+
+Each region is further reduced to a small ROI (Region of Interest) around the horizontal center line to focus on navigation-relevant obstacles.
+
+Mathematically, each region computes:
+
+\[
+D_{region} = \frac{1}{N} \sum_{i=1}^{N} D(x_i, y_i)
+\]
+
+where invalid values (NaN or infinite depth readings) are removed before averaging.
+
+### Implementation (ROS2 Node)
+
+The obstacle avoidance system is implemented in the ROS2 node `DepthDirectionDetector`, which subscribes to:
+
+- `/camera_face/depth/image_raw` → depth image input
+
+and publishes to:
+
+- `/control_input` → movement commands
+
+The depth image is converted into a NumPy array using `CvBridge`, enabling pixel-level processing.
+
+### Decision-Making Logic
+
+The navigation behavior is fully reactive and based on the following rules:
+
+#### 1. Forward Motion (No Obstacle Ahead)
+
+If the center region distance satisfies:
+
+- `center >= threshold (1.8m)`
+
+then the robot moves forward with constant linear velocity:
+
+- `ly = 0.5`
+
+This represents safe navigation in open space.
+
+#### 2. Obstacle Detected in Front
+
+If the center region is blocked, the system evaluates side regions:
+
+- If left > threshold and right > threshold:
+  - choose the direction with more available space
+- If only one side is free:
+  - turn toward the free side
+- If both sides are blocked:
+  - stop robot (no valid path)
+
+#### 3. Control Output
+
+The system publishes control signals using a custom message:
+
+- `lx`, `ly` → linear movement
+- `rx` → rotation
+- `ry` → unused
+
+Turning behavior is defined as:
+
+- `rx = -0.5` → turn left
+- `rx = 0.5` → turn right
+
+### Key Parameter (Threshold Calibration)
+
+The system depends heavily on the depth threshold:
+
+- **threshold = 1.8 meters**
+
+This parameter defines how early the robot reacts to obstacles. A smaller threshold makes the robot more aggressive, while a larger one increases safety but reduces maneuverability.
+
+### Experimental Behavior
+
+During testing in simulation:
+
+- The robot successfully detected obstacles using depth segmentation
+- It was able to select left/right paths based on available space
+- It maintained forward motion in free environments
+- It stopped when no valid path was detected
+
+### Limitations and Improvements
+
+This implementation is a **reactive local planner**, meaning it does not compute a global path. As a result, it may fail in complex scenarios such as dead-ends or highly cluttered environments.
+
+Proposed improvements include:
+
+- Dynamic threshold adaptation based on environment density
+- Smoother turning using PID control instead of fixed values
+- Integration of stereo camera calibration matrix for more accurate depth scaling
+- Fusion with global navigation (e.g., Nav2 or A* planning)
+- Addition of LiDAR or multi-sensor fusion for robustness
