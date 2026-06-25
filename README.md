@@ -60,6 +60,8 @@ The robot successfully demonstrated:
 - Continuous forward navigation without oscillation
 - Reliable stopping behavior when reaching the target
 
+- Here you can find the resoult video: https://youtu.be/_UCPzjT2o2c
+
 This stage validated the feasibility of coordinate-based navigation in Gazebo using ROS2 control loops.
 
 ---
@@ -105,7 +107,7 @@ The system showed the following behaviors:
 - Safe stopping when no valid path existed
 - Stable performance in controlled simulated environments
 
-- Here you can find the resoult video: https://youtu.be/un4r8LByhWg
+- Here you can find the resoult video: https://youtu.be/B9pchR9Gt_k
 
 However, limitations were observed in complex scenarios such as tight corridors or multiple consecutive obstacles, where local decisions could lead to suboptimal paths.
 
@@ -191,6 +193,8 @@ The integrated system demonstrated strong performance in simulation:
 - Immediate avoidance behavior upon obstacle detection
 - Smooth recovery and continuation of global navigation
 - Stable transitions between navigation and avoidance states
+
+- Here you can find the resoult video: https://youtu.be/un4r8LByhWg
 
 The system effectively behaves as a **reactive hybrid navigation system**, combining global planning and local obstacle avoidance.
 
