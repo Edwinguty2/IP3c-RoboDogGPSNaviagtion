@@ -19,123 +19,178 @@ The final objective is to combine both behaviors into a unified autonomous syste
 
 The development of this milestone was structured into three main stages:
 
-### Stage 1: Coordinate-Based Navigation
+---
 
-The first implementation focused on enabling the robot to move toward a target coordinate (X, Y) using ROS2 odometry data.
+# Stage 1: Coordinate-Based Navigation
 
-Key components:
-- `/odom` topic for robot localization
-- `/cmd_vel` for velocity control
-- Control loop running at 20Hz
-- Angle and distance error computation
+### Objective
+The objective of this stage was to implement a global navigation system where the robot moves autonomously toward a given (X, Y) coordinate using odometry feedback.
 
-The robot aligns itself toward the target and then moves forward while continuously correcting its trajectory.
+### Technical Approach
+The system was implemented using a ROS2 node (`go_to_goal_node`) that subscribes to:
+
+- `/odom` → robot pose estimation (position + orientation)
+
+And publishes to:
+
+- `/cmd_vel` → velocity commands for motion control
+
+The robot continuously computes:
+
+- Euclidean distance to the goal
+- Desired heading angle using `atan2`
+- Angular error between current orientation and target direction
+
+A proportional controller is used for motion:
+
+- First, the robot aligns itself toward the goal
+- Then it moves forward while correcting trajectory
+
+### Control Logic
+- If misaligned → rotate in place
+- If aligned → move forward proportional to distance
+- If within tolerance (0.1 m) → stop
+
+### Results
+The robot successfully demonstrated:
+
+- Stable localization using odometry
+- Accurate target direction estimation
+- Smooth rotation toward goals
+- Continuous forward navigation without oscillation
+- Reliable stopping behavior when reaching the target
+
+This stage validated the feasibility of coordinate-based navigation in Gazebo using ROS2 control loops.
 
 ---
 
-### Stage 2: Reactive Obstacle Avoidance
+# Stage 2: Reactive Obstacle Avoidance
 
-The second stage introduced perception-based navigation using a depth camera system.
+### Objective
+This stage introduced local perception-based obstacle avoidance using depth sensing from a camera.
 
-The node `DepthDirectionDetector` processes a depth image and divides it into three regions:
+### Technical Approach
+The system uses a ROS2 node (`DepthDirectionDetector`) that processes depth images from:
+
+- `/camera_face/depth/image_raw`
+
+The depth image is converted into a NumPy array using `CvBridge` and divided into three regions:
 
 - Left
 - Center
 - Right
 
-Each region is analyzed by computing the average depth value. A threshold (1.8m) determines whether an obstacle is considered blocking the path.
+Each region computes an average depth value representing obstacle distance.
 
-Behavior rules:
+### Decision Mechanism
+A threshold value of **1.8 meters** is used:
+
 - If center is clear → move forward
 - If obstacle detected → choose left or right path
-- If no path exists → stop
+- If both sides blocked → stop
 
-This implementation provides a reactive local avoidance strategy.
+### Control Output
+The system publishes commands to `/control_input`:
 
----
+- `ly` → forward motion
+- `rx` → rotation
+- `command` → control mode selector
 
-### Stage 3: Integrated Navigation + Obstacle Avoidance (MERGED SYSTEM)
+### Results
+The system showed the following behaviors:
 
-The final stage combines global navigation and obstacle avoidance into a single ROS2 node:
+- Correct detection of obstacles using depth segmentation
+- Real-time decision-making between left/right paths
+- Successful avoidance of single obstacles
+- Safe stopping when no valid path existed
+- Stable performance in controlled simulated environments
 
-📄 `1.1_Go1.py`
-
-This system uses both:
-- Odometry-based goal navigation
-- LiDAR-based obstacle detection (`/scan` topic)
-
-#### System Architecture
-
-The node subscribes to:
-- `/odom` → robot position and orientation
-- `/scan` → obstacle detection using LiDAR
-
-And publishes:
-- `/cmd_vel` → velocity commands
+However, limitations were observed in complex scenarios such as tight corridors or multiple consecutive obstacles, where local decisions could lead to suboptimal paths.
 
 ---
 
-#### Obstacle Detection Strategy
+# Stage 3: Integrated Navigation + Obstacle Avoidance (MERGED SYSTEM)
 
-A front cone is extracted from the LiDAR scan (±30 degrees). The system computes:
+### Objective
+The final stage integrates global navigation and obstacle avoidance into a unified autonomous control system capable of dynamic decision-making.
 
-- Minimum distance in front of the robot
-- If distance < 0.8m → obstacle detected
+### Implementation
+The merged system is implemented in:
+
+ `MergeGo1.py`
+
+This node extends the previous navigation logic by adding LiDAR-based obstacle detection using:
+
+- `/scan` topic (LaserScan)
+
+### System Architecture
+
+The node operates with two sensory inputs:
+
+- `/odom` → robot localization
+- `/scan` → obstacle detection
+
+And one output:
+
+- `/cmd_vel` → motion commands
+
+### Obstacle Detection Strategy
+
+A front cone of the LiDAR scan is analyzed (±30 degrees from center).
+
+The system computes:
+
+- Minimum valid distance in front of the robot
+
+If:
+
+- distance < 0.8 m → obstacle detected
+
+### Behavior Switching Logic
+
+The system dynamically switches between two states:
+
+---
+
+### 1. Obstacle Avoidance Mode
 
 When an obstacle is detected:
-- The robot stops forward motion
-- Executes a rotation in place (default right turn)
-- Searches for a free path
 
----
-
-#### Go-To-Goal Behavior
-
-When no obstacle is detected, the robot follows a standard navigation pipeline:
-
-1. Compute distance to goal
-2. Compute desired yaw angle
-3. Align orientation
-4. Move forward with proportional speed control
-
----
-
-#### Control States
-
-The system operates in two states:
-
-**1. Obstacle Mode**
 - linear velocity = 0
-- angular velocity = fixed turn (-0.4 rad/s)
-- robot rotates until path is clear
+- robot rotates in place (`angular.z = -0.4`)
+- robot searches for free space
 
-**2. Navigation Mode**
-- align toward goal
-- move forward proportional to distance
-- continuously correct heading
+This ensures immediate reaction to prevent collision.
 
 ---
 
-#### Key Parameters
+### 2. Goal Navigation Mode
 
-- Safe distance (LiDAR): 0.8 m  
-- Distance tolerance: 0.15 m  
-- Angle tolerance: 0.08 rad  
-- Max linear speed: 0.35 m/s  
-- Max angular speed: 0.4 rad/s  
+When path is clear:
+
+- Compute desired yaw angle toward target
+- Align orientation first
+- Move forward proportional to distance
+- Continuously correct heading
+
+### Control Strategy
+- Proportional controller for angular correction
+- Distance-based speed scaling
+- Safety-limited velocity constraints
 
 ---
 
-### Experimental Results
+### Results
 
-The integrated system was tested in simulation (`Gazebo`) using multiple scenarios.
+The integrated system demonstrated strong performance in simulation:
 
-The robot successfully:
-- Navigated toward target coordinates
-- Detected obstacles in real time
-- Stopped and reoriented when blocked
-- Found alternative paths using reactive turning
-- Resumed global navigation after obstacle clearance
+- Successful navigation to target coordinates
+- Real-time detection of obstacles using LiDAR
+- Immediate avoidance behavior upon obstacle detection
+- Smooth recovery and continuation of global navigation
+- Stable transitions between navigation and avoidance states
+
+The system effectively behaves as a **reactive hybrid navigation system**, combining global planning and local obstacle avoidance.
 
 ---
 
@@ -148,176 +203,21 @@ The robot successfully:
 
 ## Conclusion
 
-This milestone demonstrates a complete autonomous navigation pipeline combining global goal planning and local obstacle avoidance.
+This project successfully implemented a complete autonomous navigation pipeline for a simulated quadruped robot using ROS2 and Gazebo.
 
-The final merged system successfully integrates perception (LiDAR), localization (odometry), and control (ROS2 velocity commands), achieving real-time decision-making in a simulated robotic environment.
-The node publishes movement commands through the `/cmd_vel` topic using `geometry_msgs/Twist`. These commands are then interpreted by the locomotion controller, which converts the linear and angular velocity values into coordinated leg movements for the Unitree Go1.
+The system evolved through three progressive stages:
 
-At the same time, the node subscribes to the `/odom` topic to obtain real-time odometry information, including the robot’s current X position, Y position, and orientation.
+1. Global coordinate-based navigation
+2. Reactive depth-based obstacle avoidance
+3. Fully integrated hybrid navigation system
 
-Before the robot starts moving, the script waits until odometry data is received. The orientation is received as a quaternion and converted into a yaw angle, allowing the robot to determine its current heading.
+The final architecture demonstrates that combining odometry-based control with real-time sensor feedback enables robust autonomous behavior in dynamic environments.
 
-The target coordinate is entered manually through the terminal. A separate background thread is used to ask for X and Y coordinates without blocking ROS2 execution. Once valid coordinates are entered, the robot begins the navigation process.
+The RoboDog was able to:
 
-During navigation, the control loop runs every 0.05 seconds (20 Hz). In each cycle, the script calculates:
+- Interpret and navigate toward spatial coordinates
+- Detect and avoid obstacles using perception systems
+- Dynamically switch between behavioral states
+- Maintain stability during motion execution
 
-- The Euclidean distance to the target.
-- The desired heading angle.
-- The angular error between the current orientation and the target orientation.
-
-The robot follows a two-stage navigation strategy:
-
-1. Rotate in place until aligned with the target.
-2. Move forward while continuously correcting its trajectory.
-
-The linear velocity is dynamically adjusted according to the remaining distance to the target, while angular corrections maintain the desired trajectory.
-
-To ensure stable locomotion, safety limits are applied:
-
-- Maximum angular velocity: 0.5 rad/s
-- Linear velocity range: 0.1–0.4 m/s
-
-The destination is considered reached when the robot is within 0.1 m of the target coordinate. At that point, the robot stops and waits for a new destination.
-
-## Experimental Results
-
-Several navigation tests were conducted by assigning target coordinates such as (1,1) and (5,1). In each experiment, the RoboDog successfully:
-
-- Calculated the target direction.
-- Rotated toward the destination.
-- Walked autonomously to the specified coordinate.
-- Maintained stable locomotion during movement.
-- Stopped once the destination was reached.
-
-The results demonstrated that the navigation architecture and control logic operated correctly within the Gazebo simulation environment.
-
-## Conclusion
-
-Milestone 2 successfully validated autonomous coordinate-based navigation for the Unitree Go1 RoboDog in a simulated environment.
-
-The robot demonstrated the ability to determine its position using odometry, calculate the required heading, align itself with a target location, navigate autonomously, and stop once the goal was reached.
-
-This milestone establishes the foundation required for future development stages involving GPS integration, path planning, and obstacle avoidance.
-
-## Obstacle Avoidance (Stereo Depth-Based Perception)
-
-### Objective
-
-The objective of this module was to implement a reactive obstacle avoidance system using stereo depth perception. Unlike a simple threshold-based controller, this approach interprets depth information from a camera sensor to estimate spatial structure in front of the robot and determine safe movement directions.
-
-### Stereo Camera Model and Depth Interpretation
-
-The system is based on a stereo/depth camera model, where each pixel in the image represents a distance value (depth in meters) instead of RGB color information.
-
-This can be represented conceptually using a camera projection model:
-
-- The stereo camera generates a **depth matrix (D)**:
-  
-  D(x, y) → distance from the camera to the nearest object at pixel (x, y)
-
-This matrix is the result of stereo disparity estimation or RGB-D sensor fusion, where closer objects have smaller depth values and distant objects have larger values.
-
-### Region-Based Spatial Extraction
-
-To simplify navigation decision-making, the depth matrix is divided into three key spatial regions:
-
-- **Left region** → detects obstacles on the left side of the robot’s field of view
-- **Center region** → detects obstacles directly in front
-- **Right region** → detects obstacles on the right side
-
-Each region is extracted from a specific portion of the depth matrix:
-
-- Left: left third of the image
-- Center: middle section
-- Right: right third
-
-Each region is further reduced to a small ROI (Region of Interest) around the horizontal center line to focus on navigation-relevant obstacles.
-
-Mathematically, each region computes:
-
-\[
-D_{region} = \frac{1}{N} \sum_{i=1}^{N} D(x_i, y_i)
-\]
-
-where invalid values (NaN or infinite depth readings) are removed before averaging.
-
-### Implementation (ROS2 Node)
-
-The obstacle avoidance system is implemented in the ROS2 node `DepthDirectionDetector`, which subscribes to:
-
-- `/camera_face/depth/image_raw` → depth image input
-
-and publishes to:
-
-- `/control_input` → movement commands
-
-The depth image is converted into a NumPy array using `CvBridge`, enabling pixel-level processing.
-
-### Decision-Making Logic
-
-The navigation behavior is fully reactive and based on the following rules:
-
-#### 1. Forward Motion (No Obstacle Ahead)
-
-If the center region distance satisfies:
-
-- `center >= threshold (1.8m)`
-
-then the robot moves forward with constant linear velocity:
-
-- `ly = 0.5`
-
-This represents safe navigation in open space.
-
-#### 2. Obstacle Detected in Front
-
-If the center region is blocked, the system evaluates side regions:
-
-- If left > threshold and right > threshold:
-  - choose the direction with more available space
-- If only one side is free:
-  - turn toward the free side
-- If both sides are blocked:
-  - stop robot (no valid path)
-
-#### 3. Control Output
-
-The system publishes control signals using a custom message:
-
-- `lx`, `ly` → linear movement
-- `rx` → rotation
-- `ry` → unused
-
-Turning behavior is defined as:
-
-- `rx = -0.5` → turn left
-- `rx = 0.5` → turn right
-
-### Key Parameter (Threshold Calibration)
-
-The system depends heavily on the depth threshold:
-
-- **threshold = 1.8 meters**
-
-This parameter defines how early the robot reacts to obstacles. A smaller threshold makes the robot more aggressive, while a larger one increases safety but reduces maneuverability.
-
-### Experimental Behavior
-
-During testing in simulation:
-
-- The robot successfully detected obstacles using depth segmentation
-- It was able to select left/right paths based on available space
-- It maintained forward motion in free environments
-- It stopped when no valid path was detected
-
-### Limitations and Improvements
-
-This implementation is a **reactive local planner**, meaning it does not compute a global path. As a result, it may fail in complex scenarios such as dead-ends or highly cluttered environments.
-
-Proposed improvements include:
-
-- Dynamic threshold adaptation based on environment density
-- Smoother turning using PID control instead of fixed values
-- Integration of stereo camera calibration matrix for more accurate depth scaling
-- Fusion with global navigation (e.g., Nav2 or A* planning)
-- Addition of LiDAR or multi-sensor fusion for robustness
+This milestone establishes a solid foundation for future improvements, including global path planning (Nav2), SLAM integration, sensor fusion, and more advanced decision-making strategies for fully autonomous robotic navigation.
