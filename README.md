@@ -246,15 +246,15 @@ The following table summarizes the individual contributions of each team member 
 
 | Project Component | Joel S. Montenegro | Edwin A. Gutiérrez | Abdullah K. Ali |
 |------------------|-------------------|--------------------|-----------------|
-| GitHub Structure & Documentation | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ |
-| Milestone Structuring & Reports | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| Coordinate-Based Navigation (ROS2 / Go-To-Goal) | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
-| Odometry Processing & Position Tracking | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
-| Obstacle Detection (Depth / LiDAR Processing) | ⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Reactive Obstacle Avoidance Logic | ⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| System Integration (Merge Navigation + Avoidance) | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Testing in Gazebo Simulation | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Project Coordination & Meetings | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| GitHub Structure & Documentation | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Milestone Structuring & Reports | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| Coordinate-Based Navigation (ROS2 / Go-To-Goal) | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Odometry Processing & Position Tracking | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Obstacle Detection (Depth / LiDAR Processing) | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Reactive Obstacle Avoidance Logic | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| System Integration (Merge Navigation + Avoidance) | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Testing in Gazebo Simulation | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Project Coordination & Meetings | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 
 ---
 
@@ -262,5 +262,3 @@ The following table summarizes the individual contributions of each team member 
 - ⭐ = minimal contribution  
 - ⭐⭐⭐ = moderate contribution  
 - ⭐⭐⭐⭐⭐ = primary responsibility  
-
----
