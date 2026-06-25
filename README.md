@@ -31,13 +31,6 @@ This repository is divided into different branches to separate stable deployment
 
 ---
 
-## Visuals
-
-[Waiting for signal...] -> [GPS Update] Lat: X | Lon: Y
-[DESTINATION SET] 🚩 -> Target Lat: A | Target Lon: B
-
---
-
 ## Requirements & Installation
 
 ### Requirements
