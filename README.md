@@ -1,4 +1,4 @@
-# Milestone 2 – Autonomous Navigation and Obstacle Avoidance for RoboDog
+# Autonomous Navigation and Obstacle Avoidance for RoboDog
 
 ---
 
