@@ -202,8 +202,16 @@ The system effectively behaves as a **reactive hybrid navigation system**, combi
 
 ## 3. Project Team
 
-- Student: Chat (Ciencia de Datos – 5th Semester)
-- University: Montanuniversität Leoben
+The project was developed collaboratively by a multidisciplinary team, where each member contributed to different core areas of the system, including software development, robotics control, perception systems, and project organization.
+
+- **Joel Sebastián Montenegro González**  
+Responsible for the overall documentation structure of the project, including the design and organization of the GitHub repository. He ensured that all milestones were properly formatted, technically consistent, and aligned with academic standards. Additionally, he led the structuring of the README files, integration of technical explanations, and overall project presentation.
+
+- **Edwin Alejandro Gutiérrez Rodríguez**  
+Responsible for the development of the global navigation system, including the implementation of coordinate-based movement (Point A to Point B). He worked on robot localization using odometry data, position tracking, and motion control logic that allows the robot to determine its current position and navigate autonomously toward target coordinates.
+
+- **Abdullah Khaled Ali El-Hiari**  
+Responsible for the obstacle avoidance system using depth perception and LiDAR-based detection. He designed and implemented the reactive navigation strategy that allows the robot to detect obstacles and adjust its trajectory in real time. Additionally, he contributed as the team coordinator by organizing meetings, aligning tasks between members, and ensuring continuous project progress.
 
 ---
 
@@ -228,25 +236,7 @@ The RoboDog was able to:
 
 This milestone establishes a solid foundation for future improvements, including global path planning (Nav2), SLAM integration, sensor fusion, and more advanced decision-making strategies for fully autonomous robotic navigation.
 
-
----
-
-## 4. Project Team
-
-The project was developed collaboratively by a multidisciplinary team, where each member contributed to different core areas of the system, including software development, robotics control, perception systems, and project organization.
-
-- **Joel Sebastián Montenegro González**  
-Responsible for the overall documentation structure of the project, including the design and organization of the GitHub repository. He ensured that all milestones were properly formatted, technically consistent, and aligned with academic standards. Additionally, he led the structuring of the README files, integration of technical explanations, and overall project presentation.
-
-- **Edwin Alejandro Gutiérrez Rodríguez**  
-Responsible for the development of the global navigation system, including the implementation of coordinate-based movement (Point A to Point B). He worked on robot localization using odometry data, position tracking, and motion control logic that allows the robot to determine its current position and navigate autonomously toward target coordinates.
-
-- **Abdullah Khaled Ali El-Hiari**  
-Responsible for the obstacle avoidance system using depth perception and LiDAR-based detection. He designed and implemented the reactive navigation strategy that allows the robot to detect obstacles and adjust its trajectory in real time. Additionally, he contributed as the team coordinator by organizing meetings, aligning tasks between members, and ensuring continuous project progress.
-
----
-
-## 5. Contribution Matrix
+## 4. Contribution Matrix
 
 The following table summarizes the individual contributions of each team member across the main project components:
 
